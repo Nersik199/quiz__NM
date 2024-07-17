@@ -106,7 +106,7 @@ function getPage(req, res) {
 		const page = parseInt(req.query.page) || 1
 		const pageItems = validPage(page, posts)
 		if (pageItems === null) {
-			res.status(500).json({ message: 'not page' })
+			res.status(500).json({ message: [], status: 500 })
 		} else {
 			res.json(posts)
 		}
