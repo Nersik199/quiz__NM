@@ -10,4 +10,5 @@ router.get('/single/:id', controller.getPostsId)
 router.put('/single/:id', controller.updatePost)
 router.delete('/single/:id', controller.deletePost)
 router.get('/page', controller.getPage)
+router.post('/newPost', controller.newPostId)
 export default router

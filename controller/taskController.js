@@ -1,29 +1,58 @@
 import { v4 as uuid } from 'uuid'
-import { validateTitle, validateDisc, validPage } from '../utils/validate.js'
+import { validPage, result, validate } from '../utils/validate.js'
 let posts = []
+
 async function createPost(req, res) {
 	try {
 		const postData = req.body
-		if (validateTitle(postData.title) === true) {
-			res.status(500).json({ message: 'title not valid', status: 500 })
-			return
-		}
-
-		if (validateDisc(postData.description) === true) {
-			res.status(500).json({ message: 'title not valid', status: 500 })
-			return
-		}
-
 		postData.id = uuid()
+		const validatedPost = await validate(postData)
 		postData.taskDate = new Date()
 		postData.completed = false
-		posts.push(postData)
-		res.statusCode = 200
-		console.log(posts)
-		res.json({ message: 'createPost successful', status: 200 })
+
+		if (validatedPost) {
+			posts.push(validatedPost)
+			console.log(posts)
+			res.statusCode = 200
+			res.json({ message: 'createPost successful', status: 200 })
+		} else {
+			res.status(404).json({ message: e.message, status: 404 })
+		}
 	} catch (e) {
 		res.statusCode = 404
 		res.json({ message: e.message, status: 404 })
+	}
+}
+
+async function newPostId(req, res) {
+	try {
+		const postData = req.body
+		const time = Date.now()
+
+		const limitPost = postId => {
+			const count = time - 24 * 60 * 60 * 1000
+			return posts.filter(post => post.id === postId && post.taskDate > count)
+				.length
+		}
+
+		if (limitPost(postData.id) >= 3) {
+			res
+				.status(500)
+				.send({ message: 'your limit has been reached', status: 500 })
+			return
+		}
+
+		const validatedPost = await validate(postData)
+		postData.taskDate = new Date(time)
+		postData.completed = false
+		posts.push(validatedPost)
+
+		console.log(posts)
+		res.statusCode = 200
+		res.json({ message: 'new post created', status: 200 })
+	} catch (error) {
+		res.statusCode = 400
+		res.json({ message: error.message, status: 400 })
 	}
 }
 
@@ -97,7 +126,7 @@ function deletePost(req, res) {
 		}
 	} catch (e) {
 		res.statusCode = 404
-		res.json({ message: e.message })
+		res.json({ message: e.message, status: 404 })
 	}
 }
 
@@ -108,7 +137,7 @@ function getPage(req, res) {
 		if (pageItems === null) {
 			res.status(500).json({ message: [], status: 500 })
 		} else {
-			res.json(posts)
+			res.status(200).json({ message: result, status: 200 })
 		}
 	} catch (e) {
 		res.status(404).json({ message: e.message, status: 404 })
@@ -122,4 +151,5 @@ export default {
 	updatePost,
 	deletePost,
 	getPage,
+	newPostId,
 }
